@@ -28,7 +28,7 @@ public class AbstractEvent {
         this.timestamp = System.currentTimeMillis();
     }
 
-    public void publish() {
+    public void publish(String messageKey) {
         /**
          * spring streams 방식
          */
@@ -45,16 +45,17 @@ public class AbstractEvent {
                     MimeTypeUtils.APPLICATION_JSON
                 )
                 .setHeader("type", getEventType())
+                .setHeader(KafkaHeaders.MESSAGE_KEY, messageKey.getBytes())
                 .build()
         );
     }
 
-    public void publishAfterCommit() {
+    public void publishAfterCommit(Long messageKey) {
         TransactionSynchronizationManager.registerSynchronization(
             new TransactionSynchronizationAdapter() {
                 @Override
                 public void afterCompletion(int status) {
-                    AbstractEvent.this.publish();
+                    AbstractEvent.this.publish(String.valueOf(messageKey));
                 }
             }
         );
